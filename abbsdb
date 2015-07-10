@@ -1,5 +1,10 @@
 #! /usr/bin/abbl-invoke
-cd $(cat /etc/abbs/prefix)/repo
+if [ "$REPO" ]; then
+	cd "REPO"
+else
+	cd $(cat /etc/abbs/prefix)/repo
+fi
+
 case $1 in
 init)
 	[ -f abbs.db ] && abdie "Cannot initialize twice, please delete abbs.db"
