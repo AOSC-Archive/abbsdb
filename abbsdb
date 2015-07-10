@@ -23,7 +23,7 @@ EOF
 update) 
 	touch -d "@$(cat repo-spec/last_db_update)" abbs.db
 	epoch_db=$(stat -c %Y abbs.db)
-	for i in $(find * -maxdepth 1 -mindepth 1)
+	for i in $(find *-* -maxdepth 1 -mindepth 1)
 	do
 		# i=$(echo $i | cut -d / -f 2-)
 		[ $(stat -c %Y $i) -lt $epoch_db ] && continue
