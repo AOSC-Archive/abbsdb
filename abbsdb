@@ -31,8 +31,9 @@ update)
 		pack="$(sqlite3 abbs.db 'select name from packages where spec='"'$i'")"
 		for j in $pack
 		do
-			sqlite3 abbs.db 'delete from packages where depender='"'$j'"
+			sqlite3 abbs.db 'delete from dependencies where depender='"'$j'"
 		done
+		sqlite3 abbs.db 'delete from packages where spec='"'$i'"
 		for j in $i/*
 		do
 			[ ! -d $j ] && continue
