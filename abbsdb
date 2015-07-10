@@ -1,0 +1,45 @@
+#! /usr/bin/abbl-invoke
+cd $(cat /etc/abbs/prefix)/repo
+case $1 in
+init)
+	[ -f abbs.db ] && abdie "Cannot initialize twice, please delete abbs.db"
+	sqlite3 abbs.db << EOF
+create table packages(
+    name text not null,
+    spec text not null
+);
+create table dependencies(
+    depender text not null,
+    dependee text not null
+);
+EOF
+	touch -d "@0" abbs.db
+	;;
+update) 
+	epoch_db=$(stat -c %Y abbs.db)
+	for i in $(find * -maxdepth 1 -mindepth 1)
+	do
+		# i=$(echo $i | cut -d / -f 2-)
+		[ $(stat -c %Y $i) -lt $epoch_db ] && continue
+		# Clean up infomations of this spec
+		pack="$(sqlite3 abbs.db 'select name from packages where spec='"'$i'")"
+		for j in $pack
+		do
+			sqlite3 abbs.db 'delete from packages where depender='"'$j'"
+		done
+		for j in $i/*
+		do
+			[ ! -d $j ] && continue
+			if [ ! -f $j/defines ]; then
+				abwarn "Cannot find defines for $j"
+			fi
+			pkgname="$(source $j/defines ; echo $PKGNAME)"
+			sqlite3 abbs.db 'insert into packages values'"('$pkgname','$i')"
+			for k in $(source $j/defines ; echo $PKGDEP)
+			do
+				sqlite3 abbs.db 'insert into dependencies values'"('$pkgname','$k')"
+			done
+		done
+	done
+	;;
+esac
