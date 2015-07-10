@@ -18,9 +18,10 @@ create table dependencies(
     dependee text not null
 );
 EOF
-	touch -d "@0" abbs.db
+	echo 0 > repo-spec/last_db_update
 	;;
 update) 
+	touch -d "@$(cat repo-spec/last_db_update)" abbs.db
 	epoch_db=$(stat -c %Y abbs.db)
 	for i in $(find * -maxdepth 1 -mindepth 1)
 	do
@@ -46,5 +47,7 @@ update)
 			done
 		done
 	done
+	date -d $(git log -n1 --date=local --date=iso-strict | grep '^Date:' | awk '{print $2;}') +%s > repo-spec/last_db_update
 	;;
+	
 esac
