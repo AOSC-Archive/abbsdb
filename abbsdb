@@ -21,12 +21,16 @@ EOF
 	echo 0 > repo-spec/last_db_update
 	;;
 update) 
-	touch -d "@$(cat repo-spec/last_db_update)" abbs.db
-	epoch_db=$(stat -c %Y abbs.db)
+	last_update=$(cat repo-spec/last_db_update)
 	for i in $(find *-* -maxdepth 1 -mindepth 1)
 	do
 		# i=$(echo $i | cut -d / -f 2-)
-		[ $(stat -c %Y $i) -lt $epoch_db ] && continue
+		update=0
+		for j in $(find $i)
+		do
+			[ $(stat -c %Y $j) -ge $last_update ] && update=1
+		done
+		bool $update || continue
 		# Clean up infomations of this spec
 		pack="$(sqlite3 abbs.db 'select name from packages where spec='"'$i'")"
 		for j in $pack
